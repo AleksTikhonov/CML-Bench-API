@@ -71,7 +71,7 @@ def login(login, password):
 
 def getSimulation(id: int):
     global session
-    resp = session.get('http://cml-bench/rest/simulation/'+str(id))
+    resp = session.get(benchURL + 'rest/simulation/'+str(id))
     obj = json.loads(resp.text)
     s = Simulation()
     s.Name = obj['name']
