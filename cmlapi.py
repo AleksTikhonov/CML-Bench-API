@@ -1,9 +1,8 @@
 import json
 import requests
 
-
 session = None
-
+benchURL = 'http://cml-bench/'
 
 class Simulation:
     def __init__(self):
@@ -56,7 +55,7 @@ class StartTask:
         }
       ]
     }
-        resp = session.post('http://cml-bench/rest/task', json=d)
+        resp = session.post(benchURL + 'rest/task', json=d)
         obj = json.loads(resp.text)
         k = Simulation()
         k.taskid = obj['id']
@@ -66,7 +65,7 @@ def login(login, password):
     global session
     session = requests.Session()
     d = {'username': login, 'password': password}
-    resp = session.post('http://cml-bench/rest/login', data=d)
+    resp = session.post(benchURL + 'rest/login', data=d)
     return resp.status_code == 200
 
 
