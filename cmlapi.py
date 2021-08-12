@@ -8,6 +8,10 @@ class Simulation:
     def __init__(self):
         self.Name = ''
 
+class Loadcase:
+    def __init__(self):
+        self.Name = ''
+
 class StartTask:
     def __init__(self):
         self.sim_id = ''
@@ -78,3 +82,47 @@ def getSimulation(id: int):
     s.Owner = obj['owner']
     s.PathNames = obj['pathNames']
     return s
+
+def getLoadcase(id: int):
+    global session
+    resp = session.get(benchURL + 'rest/loadcase/'+str(id))
+    obj = json.loads(resp.text)
+    l = Loadcase()
+    l.PID = obj['id']
+    l.PID2 = obj['id']
+    return l
+
+def createsimulation(id: int):
+    global session
+    l = getLoadcase(id)
+    d = {
+  "name": "123",
+  "description": "",
+  "pathNames": None,
+  "pid": str(int(l.PID2)+1),
+  "allSubmodelsAvailable": True,
+  "attachedFilesCount": 0,
+  "reference": None,
+  "referenceId": None,
+  "multivariantId": None,
+  "multivariantName": None,
+  "dmuId": None,
+  "dmuName": None,
+  "isInClipboard": None,
+  "canRun": None,
+  "commentsTotal": 0,
+  "flag": None,
+  "overview": None,
+  "status": None,
+  "statusId": None,
+  "reportsCount": 0,
+  "hasActiveApproval": False,
+  "activeApprovalDecision": None,
+  "isRemovable": None,
+  "userAccess": {},
+  "objectType": {
+    "name": "simulation",
+  },
+  "addToClipboard": True
+}
+    resp = session.post(benchURL + 'rest/simulation', json=d)
