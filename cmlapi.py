@@ -12,7 +12,7 @@ class Loadcase:
     def __init__(self):
         self.Name = ''
 
-def startSimulation(sim_id: int, solver_id: int, nodes_count = 0, node_cores = 1):
+def startSimulation(sim_id: int, solver_id: int, nodes_count = 0, node_cores = 1, add_args = ""):
     global session
     d = {
   "objectType": {
@@ -49,14 +49,14 @@ def startSimulation(sim_id: int, solver_id: int, nodes_count = 0, node_cores = 1
     },
     {
       "name": "additionalArguments",
-      "value": ""
+      "value": add_args
     }
   ]
 }
     resp = session.post(benchURL + 'rest/task', json=d)
     obj = json.loads(resp.text)
     s = Simulation()
-    s.taskid = obj['id']
+    s.task_id = obj['id']
     return s
     
 def login(login, password):
@@ -79,6 +79,17 @@ def getSimulation(id: int):
     s.Full = obj
     return s
 
+def getSimulationSubmodels(id: int):
+    global session
+    resp = session.get(benchURL + 'rest/simulation/'+str(id)+'/submodel')
+    obj = json.loads(resp.text)
+    s = Simulation()
+    s.Submodels = []
+    for i in range(len(obj)):
+        s.Submodels.append(obj[i]['id'])
+    s.Full = obj
+    return s
+
 def getLoadcase(id: int):
     global session
     resp = session.get(benchURL + 'rest/loadcase/'+str(id))
@@ -91,9 +102,9 @@ def getLoadcase(id: int):
     l.Full = obj
     return l
 
-def createsimulation(name: str, lid: int):
+def createSimulation(name: str, lcs_id: int):
     global session
-    l = getLoadcase(lid)
+    l = getLoadcase(lcs_id)
     d = {
   "name": name,
   "description": "",
@@ -109,5 +120,13 @@ def createsimulation(name: str, lid: int):
     resp = session.post(benchURL + 'rest/simulation', json=d)
     obj = json.loads(resp.text)
     s = Simulation()
-    s.simulationid = obj['id']
+    s.sim_id = obj['id']
     return s
+
+def addSubmodel(sub_id: int, sim_id: int):
+    global session
+    d = getSimulationSubmodels(sim_id)
+    if str(sub_id) not in d.Submodels:
+        d.Submodels.append(str(sub_id))
+    resp = session.post(benchURL + 'rest/simulation/' + str(sim_id) + '/submodel', json=d.Submodels)
+    return resp.status_code == 200
