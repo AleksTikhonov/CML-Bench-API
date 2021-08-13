@@ -2,63 +2,69 @@ import json
 import requests
 
 session = None
-benchURL = 'http://cml-bench/'
+benchURL = 'http://cml-bench/'  # URL адрес CML-Bench
+
 
 class Simulation:
     def __init__(self):
         self.Name = ''
 
+
 class Loadcase:
     def __init__(self):
         self.Name = ''
 
-def startSimulation(sim_id: int, solver_id: int, nodes_count = 0, node_cores = 1, add_args = ""):
+
+# Запуск симуляции на расчет
+def startSimulation(sim_id: int, solver_id: int, nodes_count=1, node_cores=1, add_args=""):
     global session
     d = {
-  "objectType": {
-    "name": "task"
-  },
-  "storyboard": None,
-  "storyboardId": None,
-  "solverId": str(solver_id),
-  "solvingType": "Solving",
-  "notified": False,
-  "autoCreateReport": False,
-  "withPostprocessing": False,
-  "postprocessorId": None,
-  "parentType": {
-    "name": "simulation"
-  },
-  "parentId": str(sim_id),
-  "customParameters": [
-    {
-      "name": "nodesCount",
-      "value": str(nodes_count)
-    },
-    {
-      "name": "autoArguments",
-      "value": "true"
-    },
-    {
-      "name": "largeProblem",
-      "value": "true"
-    },
-    {
-      "name": "maxCoresOnNode",
-      "value": str(node_cores)
-    },
-    {
-      "name": "additionalArguments",
-      "value": add_args
+      "objectType": {
+        "name": "task"
+      },
+      "storyboard": None,
+      "storyboardId": None,
+      "solverId": str(solver_id),
+      "solvingType": "Solving",
+      "notified": False,
+      "autoCreateReport": False,
+      "withPostprocessing": False,
+      "postprocessorId": None,
+      "parentType": {
+        "name": "simulation"
+      },
+      "parentId": str(sim_id),
+      "customParameters": [
+        {
+          "name": "nodesCount",
+          "value": str(nodes_count)
+        },
+        {
+          "name": "autoArguments",
+          "value": "true"
+        },
+        {
+          "name": "largeProblem",
+          "value": "true"
+        },
+        {
+          "name": "maxCoresOnNode",
+          "value": str(node_cores)
+        },
+        {
+          "name": "additionalArguments",
+          "value": str(add_args)
+        }
+      ]
     }
-  ]
-}
     resp = session.post(benchURL + 'rest/task', json=d)
     obj = json.loads(resp.text)
     s = Simulation()
     s.task_id = obj['id']
     return s
-    
+
+
+# Вход в CML-Bench
 def login(login, password):
     global session
     session = requests.Session()
@@ -67,6 +73,7 @@ def login(login, password):
     return resp.status_code == 200
 
 
+# Запрос атрибутов симуляции
 def getSimulation(id: int):
     global session
     resp = session.get(benchURL + 'rest/simulation/'+str(id))
@@ -79,6 +86,8 @@ def getSimulation(id: int):
     s.Full = obj
     return s
 
+
+# Запрос состава субмоделей симуляции
 def getSimulationSubmodels(id: int):
     global session
     resp = session.get(benchURL + 'rest/simulation/'+str(id)+'/submodel')
@@ -90,6 +99,8 @@ def getSimulationSubmodels(id: int):
     s.Full = obj
     return s
 
+
+# Запрос атрибутов лоадкейса
 def getLoadcase(id: int):
     global session
     resp = session.get(benchURL + 'rest/loadcase/'+str(id))
@@ -102,27 +113,31 @@ def getLoadcase(id: int):
     l.Full = obj
     return l
 
+
+# Создание симуляции
 def createSimulation(name: str, lcs_id: int):
     global session
     l = getLoadcase(lcs_id)
     d = {
-  "name": name,
-  "description": "",
-  "pid": l.PathID,
-  "referenceId": None,
-  "multivariantId": None,
-  "dmuId": None,
-  "objectType": {
-    "name": "simulation",
-  },
-  "addToClipboard": True
-}
+      "name": name,
+      "description": "",
+      "pid": l.PathID,
+      "referenceId": None,
+      "multivariantId": None,
+      "dmuId": None,
+      "objectType": {
+        "name": "simulation",
+      },
+      "addToClipboard": True
+    }
     resp = session.post(benchURL + 'rest/simulation', json=d)
     obj = json.loads(resp.text)
     s = Simulation()
     s.sim_id = obj['id']
     return s
 
+
+# Добавление субмоделей в симуляцию
 def addSubmodel(sub_id: int, sim_id: int):
     global session
     d = getSimulationSubmodels(sim_id)
