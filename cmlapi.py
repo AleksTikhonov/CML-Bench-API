@@ -15,55 +15,6 @@ class Loadcase:
         self.Name = ''
 
 
-# Запуск симуляции на расчет
-def startSimulation(sim_id: int, solver_id: int, nodes_count=1, node_cores=1, add_args=""):
-    global session
-    d = {
-      "objectType": {
-        "name": "task"
-      },
-      "storyboard": None,
-      "storyboardId": None,
-      "solverId": str(solver_id),
-      "solvingType": "Solving",
-      "notified": False,
-      "autoCreateReport": False,
-      "withPostprocessing": False,
-      "postprocessorId": None,
-      "parentType": {
-        "name": "simulation"
-      },
-      "parentId": str(sim_id),
-      "customParameters": [
-        {
-          "name": "nodesCount",
-          "value": str(nodes_count)
-        },
-        {
-          "name": "autoArguments",
-          "value": "true"
-        },
-        {
-          "name": "largeProblem",
-          "value": "true"
-        },
-        {
-          "name": "maxCoresOnNode",
-          "value": str(node_cores)
-        },
-        {
-          "name": "additionalArguments",
-          "value": str(add_args)
-        }
-      ]
-    }
-    resp = session.post(benchURL + 'rest/task', json=d)
-    obj = json.loads(resp.text)
-    s = Simulation()
-    s.task_id = obj['id']
-    return s
-
-
 # Вход в CML-Bench
 def login(login, password):
     global session
@@ -145,3 +96,91 @@ def addSubmodel(sub_id: int, sim_id: int):
         d.Submodels.append(str(sub_id))
     resp = session.post(benchURL + 'rest/simulation/' + str(sim_id) + '/submodel', json=d.Submodels)
     return resp.status_code == 200
+
+
+# Запуск симуляции на расчет
+def startSimulation(sim_id: int, solver_id: int, nodes_count=1, node_cores=1, add_args=""):
+    global session
+    d = {
+      "objectType": {
+        "name": "task"
+      },
+      "storyboard": None,
+      "storyboardId": None,
+      "solverId": str(solver_id),
+      "solvingType": "Solving",
+      "notified": False,
+      "autoCreateReport": False,
+      "withPostprocessing": False,
+      "postprocessorId": None,
+      "parentType": {
+        "name": "simulation"
+      },
+      "parentId": str(sim_id),
+      "customParameters": [
+        {
+          "name": "nodesCount",
+          "value": str(nodes_count)
+        },
+        {
+          "name": "autoArguments",
+          "value": "true"
+        },
+        {
+          "name": "largeProblem",
+          "value": "true"
+        },
+        {
+          "name": "maxCoresOnNode",
+          "value": str(node_cores)
+        },
+        {
+          "name": "additionalArguments",
+          "value": str(add_args)
+        }
+      ]
+    }
+    resp = session.post(benchURL + 'rest/task', json=d)
+    obj = json.loads(resp.text)
+    s = Simulation()
+    s.task_id = obj['id']
+    return s
+
+
+# Запуск постпроцессинга
+def startPostproc(sim_id: int, post_id: int, story_id: int):
+    global session
+    d = {
+      "parentId": str(sim_id),
+      "parentType": {
+        "name": "simulation",
+      },
+      "storyboardId": str(story_id),
+      "postprocessorId": str(post_id),
+      "type": "postprocessing",
+    }
+    resp = session.post(benchURL + 'rest/task', json=d)
+    obj = json.loads(resp.text)
+    s = Simulation()
+    s.task_id = obj['id']
+    return s
+
+
+# Возврат списка солверов
+def getSolverList():
+    d = {
+      "filters": {
+        "list": []
+      },
+      "sort": [
+        {
+          "direction": "ASC",
+          "field": "name"
+        }
+      ]
+    }
+    resp = session.post(benchURL + 'rest/solver/list', json=d)
+    obj = json.loads(resp.text)
+    s = Simulation()
+    s.Full = obj
+    return s

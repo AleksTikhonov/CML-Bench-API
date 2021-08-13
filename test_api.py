@@ -3,13 +3,14 @@ import cmlapi
 b = cmlapi.login('atikhonov', '1-,Yh1[Y')
 
 if b:
-    #t = cmlapi.StartTask()
-    #t.sim_id = 924369
-    #t.solver_id = 10
-    #t.nodes_count = 5
-    #t.node_cores = 23
-    #task = t.startSimulation()
-    #print(task.taskid)
-    cmlapi.createsimulation(885339)
+    #task = cmlapi.getSimulationSubmodels(924369)
+    #print(task.Test)
+    #task = cmlapi.createsimulation('123',885339)
+    #print(task.simulationid)
     #l1 = cmlapi.getLoadcase(885339)
-    #print(l1.PID)
+    #print(l1.PathID)
+    #cmlapi.addSubmodel(926800,924369)
+    #task = cmlapi.startPostproc(924369, 92, 951777)
+    #print(task.task_id)
+    task = cmlapi.getSolverList()
+    print(task.Full)
