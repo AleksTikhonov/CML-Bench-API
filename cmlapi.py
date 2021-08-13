@@ -87,6 +87,8 @@ def getLoadcase(id: int):
     l.PID = obj['id']
     l.PathID = obj['links'][0]['path'][len(obj['links'][0]['path'])-1]['id']
     l.Name = obj['name']
+    l.Owner = obj['owner']
+    l.Full = obj
     return l
 
 def createsimulation(name: str, lid: int):
