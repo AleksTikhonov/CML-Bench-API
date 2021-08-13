@@ -12,58 +12,52 @@ class Loadcase:
     def __init__(self):
         self.Name = ''
 
-class StartTask:
-    def __init__(self):
-        self.sim_id = ''
-        self.solver_id = ''
-        self.nodes_count = ''
-        self.node_cores = ''
-    def startSimulation(self):
-        global session
-        d = {
-      "objectType": {
-        "name": "task"
-      },
-      "storyboard": None,
-      "storyboardId": None,
-      "solverId": str(self.solver_id),
-      "solvingType": "Solving",
-      "notified": False,
-      "autoCreateReport": False,
-      "withPostprocessing": False,
-      "postprocessorId": None,
-      "parentType": {
-        "name": "simulation"
-      },
-      "parentId": str(self.sim_id),
-      "customParameters": [
-        {
-          "name": "nodesCount",
-          "value": str(self.nodes_count)
-        },
-        {
-          "name": "autoArguments",
-          "value": "true"
-        },
-        {
-          "name": "largeProblem",
-          "value": "true"
-        },
-        {
-          "name": "maxCoresOnNode",
-          "value": str(self.node_cores)
-        },
-        {
-          "name": "additionalArguments",
-          "value": ""
-        }
-      ]
+def startSimulation(sim_id: int, solver_id: int, nodes_count = 0, node_cores = 1):
+    global session
+    d = {
+  "objectType": {
+    "name": "task"
+  },
+  "storyboard": None,
+  "storyboardId": None,
+  "solverId": str(solver_id),
+  "solvingType": "Solving",
+  "notified": False,
+  "autoCreateReport": False,
+  "withPostprocessing": False,
+  "postprocessorId": None,
+  "parentType": {
+    "name": "simulation"
+  },
+  "parentId": str(sim_id),
+  "customParameters": [
+    {
+      "name": "nodesCount",
+      "value": str(nodes_count)
+    },
+    {
+      "name": "autoArguments",
+      "value": "true"
+    },
+    {
+      "name": "largeProblem",
+      "value": "true"
+    },
+    {
+      "name": "maxCoresOnNode",
+      "value": str(node_cores)
+    },
+    {
+      "name": "additionalArguments",
+      "value": ""
     }
-        resp = session.post(benchURL + 'rest/task', json=d)
-        obj = json.loads(resp.text)
-        k = Simulation()
-        k.taskid = obj['id']
-        return k
+  ]
+}
+    resp = session.post(benchURL + 'rest/task', json=d)
+    obj = json.loads(resp.text)
+    s = Simulation()
+    s.taskid = obj['id']
+    return s
     
 def login(login, password):
     global session
@@ -81,6 +75,8 @@ def getSimulation(id: int):
     s.Name = obj['name']
     s.Owner = obj['owner']
     s.PathNames = obj['pathNames']
+    s.Status = obj['status']
+    s.Full = obj
     return s
 
 def getLoadcase(id: int):
@@ -89,40 +85,27 @@ def getLoadcase(id: int):
     obj = json.loads(resp.text)
     l = Loadcase()
     l.PID = obj['id']
-    l.PID2 = obj['id']
+    l.PathID = obj['links'][0]['path'][len(obj['links'][0]['path'])-1]['id']
+    l.Name = obj['name']
     return l
 
-def createsimulation(id: int):
+def createsimulation(name: str, lid: int):
     global session
-    l = getLoadcase(id)
+    l = getLoadcase(lid)
     d = {
-  "name": "123",
+  "name": name,
   "description": "",
-  "pathNames": None,
-  "pid": str(int(l.PID2)+1),
-  "allSubmodelsAvailable": True,
-  "attachedFilesCount": 0,
-  "reference": None,
+  "pid": l.PathID,
   "referenceId": None,
   "multivariantId": None,
-  "multivariantName": None,
   "dmuId": None,
-  "dmuName": None,
-  "isInClipboard": None,
-  "canRun": None,
-  "commentsTotal": 0,
-  "flag": None,
-  "overview": None,
-  "status": None,
-  "statusId": None,
-  "reportsCount": 0,
-  "hasActiveApproval": False,
-  "activeApprovalDecision": None,
-  "isRemovable": None,
-  "userAccess": {},
   "objectType": {
     "name": "simulation",
   },
   "addToClipboard": True
 }
     resp = session.post(benchURL + 'rest/simulation', json=d)
+    obj = json.loads(resp.text)
+    s = Simulation()
+    s.simulationid = obj['id']
+    return s
