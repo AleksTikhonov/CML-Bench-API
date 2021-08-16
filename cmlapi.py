@@ -190,7 +190,7 @@ def getSolverList():
 
 
 # Возврат имени солвера
-def getSolverName(solver_id=1):
+def getSolverName(solver_id: int):
     t = getSolverList()
     s = Simulation()
     try:
