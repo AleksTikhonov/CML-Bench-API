@@ -15,6 +15,16 @@ class Loadcase:
         self.Name = ''
 
 
+class Task:
+    def __init__(self):
+        self.Name = ''
+
+
+class Solver:
+    def __init__(self):
+        self.Name = ''
+
+
 # Вход в CML-Bench
 def login(login, password):
     global session
@@ -142,7 +152,7 @@ def startSimulation(sim_id: int, solver_id: int, nodes_count=1, node_cores=1, ad
     }
     resp = session.post(benchURL + 'rest/task', json=d)
     obj = json.loads(resp.text)
-    s = Simulation()
+    s = Task()
     s.task_id = obj['id']
     return s
 
@@ -161,7 +171,7 @@ def startPostproc(sim_id: int, post_id: int, story_id: int):
     }
     resp = session.post(benchURL + 'rest/task', json=d)
     obj = json.loads(resp.text)
-    s = Simulation()
+    s = Task()
     s.task_id = obj['id']
     return s
 
@@ -182,7 +192,7 @@ def getSolverList():
     }
     resp = session.post(benchURL + 'rest/solver/list', json=d)
     obj = json.loads(resp.text)
-    s = Simulation()
+    s = Solver()
     s.solver_list = []
     for i in range(len(obj['content'])):
         s.solver_list.append(obj['content'][i]['name'])
@@ -192,7 +202,7 @@ def getSolverList():
 # Возврат имени солвера
 def getSolverName(solver_id: int):
     t = getSolverList()
-    s = Simulation()
+    s = Solver()
     try:
         s.solver_name = t.solver_list[solver_id-1]
     except IndexError:
