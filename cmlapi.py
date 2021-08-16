@@ -5,6 +5,11 @@ session = None
 benchURL = 'http://cml-bench/'  # URL адрес CML-Bench
 
 
+class Submodel:
+    def __init__(self):
+        self.Name = ''
+
+
 class Simulation:
     def __init__(self):
         self.Name = ''
@@ -201,10 +206,33 @@ def getSolverList():
 
 # Возврат имени солвера
 def getSolverName(solver_id: int):
+    global session
     t = getSolverList()
     s = Solver()
     try:
         s.solver_name = t.solver_list[solver_id-1]
     except IndexError:
         s.solver_name = 'Solver not found'
+    return s
+
+
+# Загрузка субмодели
+def createSubmodel(stype_id: int, submodel_path: str):
+    global session
+    f = open(submodel_path)
+    data = {
+        "pid": str(stype_id),
+        "addToClipboard": "on"
+    }
+    files = {
+        "file": f
+    }
+    resp = session.post(benchURL + 'rest/submodel', data=data, files=files)
+    obj = json.loads(resp.text)
+    s = Submodel()
+    s.Full = obj
+    try:
+        s.submodel_id = obj['duplicates'][0]['createdObject']['id']
+    except IndexError:
+        s.submodel_id = obj['set'][0]['id']
     return s
