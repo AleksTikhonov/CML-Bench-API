@@ -25,9 +25,9 @@ def login(login, password):
 
 
 # Запрос атрибутов симуляции
-def getSimulation(id: int):
+def getSimulation(sim_id: int):
     global session
-    resp = session.get(benchURL + 'rest/simulation/'+str(id))
+    resp = session.get(benchURL + 'rest/simulation/'+str(sim_id))
     obj = json.loads(resp.text)
     s = Simulation()
     s.Name = obj['name']
@@ -39,9 +39,9 @@ def getSimulation(id: int):
 
 
 # Запрос состава субмоделей симуляции
-def getSimulationSubmodels(id: int):
+def getSimulationSubmodels(sim_id: int):
     global session
-    resp = session.get(benchURL + 'rest/simulation/'+str(id)+'/submodel')
+    resp = session.get(benchURL + 'rest/simulation/'+str(sim_id)+'/submodel')
     obj = json.loads(resp.text)
     s = Simulation()
     s.Submodels = []
@@ -52,9 +52,9 @@ def getSimulationSubmodels(id: int):
 
 
 # Запрос атрибутов лоадкейса
-def getLoadcase(id: int):
+def getLoadcase(lcs_id: int):
     global session
-    resp = session.get(benchURL + 'rest/loadcase/'+str(id))
+    resp = session.get(benchURL + 'rest/loadcase/'+str(lcs_id))
     obj = json.loads(resp.text)
     l = Loadcase()
     l.PID = obj['id']
@@ -168,6 +168,7 @@ def startPostproc(sim_id: int, post_id: int, story_id: int):
 
 # Возврат списка солверов
 def getSolverList():
+    global session
     d = {
       "filters": {
         "list": []
@@ -182,5 +183,18 @@ def getSolverList():
     resp = session.post(benchURL + 'rest/solver/list', json=d)
     obj = json.loads(resp.text)
     s = Simulation()
-    s.Full = obj
+    s.solver_list = []
+    for i in range(len(obj['content'])):
+        s.solver_list.append(obj['content'][i]['name'])
+    return s
+
+
+# Возврат имени солвера
+def getSolverName(solver_id=1):
+    t = getSolverList()
+    s = Simulation()
+    try:
+        s.solver_name = t.solver_list[solver_id-1]
+    except IndexError:
+        s.solver_name = 'Solver not found'
     return s
