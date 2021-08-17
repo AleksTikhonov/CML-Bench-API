@@ -5,6 +5,11 @@ session = None
 benchURL = 'http://cml-bench/'  # URL адрес CML-Bench
 
 
+class Stype:
+    def __init__(self):
+        self.Name = ''
+
+
 class Submodel:
     def __init__(self):
         self.Name = ''
@@ -71,13 +76,12 @@ def getLoadcase(lcs_id: int):
     global session
     resp = session.get(benchURL + 'rest/loadcase/'+str(lcs_id))
     obj = json.loads(resp.text)
-    l = Loadcase()
-    l.PID = obj['id']
-    l.PathID = obj['links'][0]['path'][len(obj['links'][0]['path'])-1]['id']
-    l.Name = obj['name']
-    l.Owner = obj['owner']
-    l.Full = obj
-    return l
+    s = Loadcase()
+    s.PathID = obj['links'][0]['path'][len(obj['links'][0]['path'])-1]['id']
+    s.Name = obj['name']
+    s.Owner = obj['owner']
+    s.Full = obj
+    return s
 
 
 # Создание симуляции
@@ -216,12 +220,26 @@ def getSolverName(solver_id: int):
     return s
 
 
+# Запрос атрибутов S-type
+def getStype(stype_id: int):
+    global session
+    resp = session.get(benchURL + 'rest/submodelType/'+str(stype_id))
+    obj = json.loads(resp.text)
+    s = Stype()
+    s.PathID = obj['links'][0]['path'][len(obj['links'])]['id']
+    s.Name = obj['name']
+    s.Owner = obj['owner']
+    s.Full = obj
+    return s
+
+
 # Загрузка субмодели
 def createSubmodel(stype_id: int, submodel_path: str):
     global session
     f = open(submodel_path)
+    l = getStype(stype_id)
     data = {
-        "pid": str(stype_id),
+        "pid": str(l.PathID),
         "addToClipboard": "on"
     }
     files = {
@@ -232,7 +250,7 @@ def createSubmodel(stype_id: int, submodel_path: str):
     s = Submodel()
     s.Full = obj
     try:
-        s.submodel_id = obj['duplicates'][0]['createdObject']['id']
+        s.submodel_id = obj['duplicates'][0]['createdObject']['id']  # если дубликат субмодели есть
     except IndexError:
-        s.submodel_id = obj['set'][0]['id']
+        s.submodel_id = obj['set'][0]['id']  # если дубликата субмодели нет
     return s
