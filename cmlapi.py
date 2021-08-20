@@ -254,3 +254,28 @@ def createSubmodel(stype_id: int, submodel_path: str):
     except IndexError:
         s.submodel_id = obj['set'][0]['id']  # если дубликата субмодели нет
     return s
+
+
+# Запрос ID файла из симуляции
+def getSimulationFileID(sim_id: int, file_name: str, bench_file_path: str):
+    global session
+    d = {"filters": {"list": [{"name": "path", "value": bench_file_path}]}, "sort": []}
+    resp = session.post(benchURL + 'rest/simulation/' + str(sim_id) + '/file/list', json=d)
+    obj = json.loads(resp.text)
+    s = Simulation()
+    for i in range(len(obj['content'])):
+        if obj['content'][i]['name'] == file_name:
+            s.file_id = obj['content'][i]['id']
+            break
+        else:
+            continue
+    return s
+
+
+# Скачивание файла из симуляции
+def downloadSimulationFile(sim_id: int, file_name: str, bench_file_path: str, local_file_path: str):
+    global session
+    t = getSimulationFileID(sim_id, file_name, bench_file_path)
+    resp = session.get(benchURL + 'rest/simulation/' + str(sim_id) + '/file/' + t.file_id + '/export')
+    with open(local_file_path + '/' + file_name, "wb") as code:
+        code.write(resp.content)
