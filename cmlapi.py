@@ -5,6 +5,11 @@ session = None
 benchURL = 'http://cml-bench/'  # URL адрес CML-Bench
 
 
+class File:
+    def __init__(self):
+        self.Name = ''
+
+
 class Stype:
     def __init__(self):
         self.Name = ''
@@ -50,11 +55,16 @@ def getSimulation(sim_id: int):
     resp = session.get(benchURL + 'rest/simulation/'+str(sim_id))
     obj = json.loads(resp.text)
     s = Simulation()
-    s.Name = obj['name']
-    s.Owner = obj['owner']
-    s.PathNames = obj['pathNames']
-    s.Status = obj['status']
-    s.Full = obj
+    try:
+        s.Name = obj['name']
+        s.Owner = obj['owner']
+        s.PathNames = obj['pathNames']
+        s.Status = obj['status']
+        s.Full = obj
+        s.Error = None
+    except KeyError:
+        s.Name = s.Owner = s.PathNames = s.Status = s.Full = None
+        s.Error = obj['message']
     return s
 
 
@@ -64,10 +74,15 @@ def getSimulationSubmodels(sim_id: int):
     resp = session.get(benchURL + 'rest/simulation/'+str(sim_id)+'/submodel')
     obj = json.loads(resp.text)
     s = Simulation()
-    s.Submodels = []
-    for i in range(len(obj)):
-        s.Submodels.append(obj[i]['id'])
-    s.Full = obj
+    try:
+        s.Submodels = []
+        for i in range(len(obj)):
+            s.Submodels.append(obj[i]['id'])
+        s.Full = obj
+        s.Error = None
+    except KeyError:
+        s.Submodels = s.Full = None
+        s.Error = obj['message']
     return s
 
 
@@ -76,11 +91,16 @@ def getLoadcase(lcs_id: int):
     global session
     resp = session.get(benchURL + 'rest/loadcase/'+str(lcs_id))
     obj = json.loads(resp.text)
-    s = Loadcase()
-    s.PathID = obj['links'][0]['path'][len(obj['links'][0]['path'])-1]['id']
-    s.Name = obj['name']
-    s.Owner = obj['owner']
-    s.Full = obj
+    try:
+        s = Loadcase()
+        s.PathID = obj['links'][0]['path'][len(obj['links'][0]['path'])-1]['id']
+        s.Name = obj['name']
+        s.Owner = obj['owner']
+        s.Full = obj
+        s.Error = None
+    except KeyError:
+        s.Name = s.Owner = s.PathID = s.Full = None
+        s.Error = obj['message']
     return s
 
 
@@ -262,7 +282,7 @@ def getSimulationFileID(sim_id: int, file_name: str, bench_file_path: str):
     d = {"filters": {"list": [{"name": "path", "value": bench_file_path}]}, "sort": []}
     resp = session.post(benchURL + 'rest/simulation/' + str(sim_id) + '/file/list', json=d)
     obj = json.loads(resp.text)
-    s = Simulation()
+    s = File()
     for i in range(len(obj['content'])):
         if obj['content'][i]['name'] == file_name:
             s.file_id = obj['content'][i]['id']
@@ -279,3 +299,4 @@ def downloadSimulationFile(sim_id: int, file_name: str, bench_file_path: str, lo
     resp = session.get(benchURL + 'rest/simulation/' + str(sim_id) + '/file/' + t.file_id + '/export')
     with open(local_file_path + '/' + file_name, "wb") as code:
         code.write(resp.content)
+    return resp.status_code == 200
