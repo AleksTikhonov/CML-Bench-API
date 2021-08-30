@@ -300,3 +300,37 @@ def downloadSimulationFile(sim_id: int, file_name: str, bench_file_path: str, lo
     with open(local_file_path + '/' + file_name, "wb") as code:
         code.write(resp.content)
     return resp.status_code == 200
+
+
+# Запуск Remote app
+def runRemoteAppSmodel(app_id: str, submodel_id: int):
+    global session
+    d = {
+      "objectTypeName": "remoteApp",
+      "details": {
+        "application": {
+          "id": app_id
+        },
+        "files": [
+          {
+            "id": str(submodel_id),
+            "objectType": {
+              "name": "submodel"
+            }
+          }
+        ],
+        "size": {
+          "width": 1536,
+          "height": 864
+        }
+      }
+    }
+    resp = session.post(benchURL + 'rest/job', json=d)
+    obj = json.loads(resp.text)
+    s = Submodel()
+    s.Full = obj
+    s.Message = obj['message']
+    s.TaskID = obj['value']['id']
+    s.StateDisplayName = obj['value']['stateDisplayName']
+    s.Status = obj['status']
+    return s
