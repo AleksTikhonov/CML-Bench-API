@@ -302,7 +302,7 @@ def downloadSimulationFile(sim_id: int, file_name: str, bench_file_path: str, lo
     return resp.status_code == 200
 
 
-# Запуск Remote app
+# Запуск субмодели в Remote app
 def runRemoteAppSmodel(app_id: str, submodel_id: int):
     global session
     d = {
