@@ -5,37 +5,7 @@ session = None
 benchURL = 'http://cml-bench/'  # URL адрес CML-Bench
 
 
-class File:
-    def __init__(self):
-        self.Name = ''
-
-
-class Stype:
-    def __init__(self):
-        self.Name = ''
-
-
-class Submodel:
-    def __init__(self):
-        self.Name = ''
-
-
-class Simulation:
-    def __init__(self):
-        self.Name = ''
-
-
-class Loadcase:
-    def __init__(self):
-        self.Name = ''
-
-
-class Task:
-    def __init__(self):
-        self.Name = ''
-
-
-class Solver:
+class Object:
     def __init__(self):
         self.Name = ''
 
@@ -54,7 +24,7 @@ def getSimulation(sim_id: int):
     global session
     resp = session.get(benchURL + 'rest/simulation/'+str(sim_id))
     obj = json.loads(resp.text)
-    s = Simulation()
+    s = Object()
     try:
         s.Name = obj['name']
         s.Owner = obj['owner']
@@ -63,7 +33,7 @@ def getSimulation(sim_id: int):
         s.Full = obj
         s.Error = None
     except KeyError:
-        s.Name = s.Owner = s.PathNames = s.Status = s.Full = None
+        s.Name = s.Owner = s.PathNames = s.Status = None
         s.Error = obj['message']
     return s
 
@@ -73,7 +43,7 @@ def getSimulationSubmodels(sim_id: int):
     global session
     resp = session.get(benchURL + 'rest/simulation/'+str(sim_id)+'/submodel')
     obj = json.loads(resp.text)
-    s = Simulation()
+    s = Object()
     try:
         s.Submodels = []
         for i in range(len(obj)):
@@ -81,7 +51,7 @@ def getSimulationSubmodels(sim_id: int):
         s.Full = obj
         s.Error = None
     except KeyError:
-        s.Submodels = s.Full = None
+        s.Submodels = None
         s.Error = obj['message']
     return s
 
@@ -91,15 +61,15 @@ def getLoadcase(lcs_id: int):
     global session
     resp = session.get(benchURL + 'rest/loadcase/'+str(lcs_id))
     obj = json.loads(resp.text)
+    s = Object()
     try:
-        s = Loadcase()
         s.PathID = obj['links'][0]['path'][len(obj['links'][0]['path'])-1]['id']
         s.Name = obj['name']
         s.Owner = obj['owner']
         s.Full = obj
         s.Error = None
     except KeyError:
-        s.Name = s.Owner = s.PathID = s.Full = None
+        s.Name = s.Owner = s.PathID = None
         s.Error = obj['message']
     return s
 
@@ -122,8 +92,13 @@ def createSimulation(name: str, lcs_id: int):
     }
     resp = session.post(benchURL + 'rest/simulation', json=d)
     obj = json.loads(resp.text)
-    s = Simulation()
-    s.sim_id = obj['id']
+    s = Object()
+    try:
+        s.sim_id = obj['id']
+        s.Error = None
+    except KeyError:
+        s.sim_id = None
+        s.Error = obj['message']
     return s
 
 
@@ -181,8 +156,13 @@ def startSimulation(sim_id: int, solver_id: int, nodes_count=1, node_cores=1, ad
     }
     resp = session.post(benchURL + 'rest/task', json=d)
     obj = json.loads(resp.text)
-    s = Task()
-    s.task_id = obj['id']
+    s = Object()
+    try:
+        s.task_id = obj['id']
+        s.Error = None
+    except KeyError:
+        s.task_id = None
+        s.Error = obj['message']
     return s
 
 
@@ -200,8 +180,13 @@ def startPostproc(sim_id: int, post_id: int, story_id: int):
     }
     resp = session.post(benchURL + 'rest/task', json=d)
     obj = json.loads(resp.text)
-    s = Task()
-    s.task_id = obj['id']
+    s = Object()
+    try:
+        s.task_id = obj['id']
+        s.Error = None
+    except KeyError:
+        s.task_id = None
+        s.Error = obj['message']
     return s
 
 
@@ -221,7 +206,7 @@ def getSolverList():
     }
     resp = session.post(benchURL + 'rest/solver/list', json=d)
     obj = json.loads(resp.text)
-    s = Solver()
+    s = Object()
     s.solver_list = []
     for i in range(len(obj['content'])):
         s.solver_list.append(obj['content'][i]['name'])
@@ -232,7 +217,7 @@ def getSolverList():
 def getSolverName(solver_id: int):
     global session
     t = getSolverList()
-    s = Solver()
+    s = Object()
     try:
         s.solver_name = t.solver_list[solver_id-1]
     except IndexError:
@@ -245,11 +230,16 @@ def getStype(stype_id: int):
     global session
     resp = session.get(benchURL + 'rest/submodelType/'+str(stype_id))
     obj = json.loads(resp.text)
-    s = Stype()
-    s.PathID = obj['links'][0]['path'][len(obj['links'])]['id']
-    s.Name = obj['name']
-    s.Owner = obj['owner']
-    s.Full = obj
+    s = Object()
+    try:
+        s.PathID = obj['links'][0]['path'][len(obj['links'])]['id']
+        s.Name = obj['name']
+        s.Owner = obj['owner']
+        s.Full = obj
+        s.Error = None
+    except KeyError:
+        s.PathID = s.Name = s.Owner = None
+        s.Error = obj['message']
     return s
 
 
@@ -267,7 +257,7 @@ def createSubmodel(stype_id: int, submodel_path: str):
     }
     resp = session.post(benchURL + 'rest/submodel', data=data, files=files)
     obj = json.loads(resp.text)
-    s = Submodel()
+    s = Object()
     s.Full = obj
     try:
         s.submodel_id = obj['duplicates'][0]['createdObject']['id']  # если дубликат субмодели есть
@@ -282,13 +272,18 @@ def getSimulationFileID(sim_id: int, file_name: str, bench_file_path: str):
     d = {"filters": {"list": [{"name": "path", "value": bench_file_path}]}, "sort": []}
     resp = session.post(benchURL + 'rest/simulation/' + str(sim_id) + '/file/list', json=d)
     obj = json.loads(resp.text)
-    s = File()
-    for i in range(len(obj['content'])):
-        if obj['content'][i]['name'] == file_name:
-            s.file_id = obj['content'][i]['id']
-            break
-        else:
-            continue
+    s = Object()
+    try:
+        for i in range(len(obj['content'])):
+            if obj['content'][i]['name'] == file_name:
+                s.file_id = obj['content'][i]['id']
+                break
+            else:
+                continue
+        s.Error = None
+    except KeyError:
+        s.file_id = None
+        s.Error = obj['message']
     return s
 
 
@@ -327,10 +322,33 @@ def runRemoteAppSmodel(app_id: str, submodel_id: int):
     }
     resp = session.post(benchURL + 'rest/job', json=d)
     obj = json.loads(resp.text)
-    s = Submodel()
-    s.Full = obj
-    s.Message = obj['message']
-    s.TaskID = obj['value']['id']
-    s.StateDisplayName = obj['value']['stateDisplayName']
-    s.Status = obj['status']
+    s = Object()
+    try:
+        s.Full = obj
+        s.Message = obj['message']
+        s.TaskID = obj['value']['id']
+        s.StateDisplayName = obj['value']['stateDisplayName']
+        s.Status = obj['status']
+        s.Error = None
+    except KeyError:
+        s.Message = s.TaskID = s.StateDisplayName = s.Status = None
+        s.Error = obj['message']
+    return s
+
+
+def getUser(user_id: int):
+    global session
+    resp = session.get(benchURL + 'rest/user/'+str(user_id))
+    obj = json.loads(resp.text)
+    s = Object()
+    try:
+        s.Full = obj
+        s.Name = obj['name']
+        s.Login = obj['login']
+        s.Email = obj['email']
+        s.Phone = obj['phone']
+        s.Error = None
+    except KeyError:
+        s.Name = s.Login = s.Email = s.Phone = None
+        s.Error = obj['message']
     return s
