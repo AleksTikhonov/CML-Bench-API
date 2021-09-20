@@ -25,6 +25,7 @@ def getSimulation(sim_id: int):
     resp = session.get(benchURL + 'rest/simulation/'+str(sim_id))
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.Name = obj['name']
         s.Owner = obj['owner']
@@ -44,6 +45,7 @@ def getSimulationSubmodels(sim_id: int):
     resp = session.get(benchURL + 'rest/simulation/'+str(sim_id)+'/submodel')
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.Submodels = []
         for i in range(len(obj)):
@@ -62,6 +64,7 @@ def getLoadcase(lcs_id: int):
     resp = session.get(benchURL + 'rest/loadcase/'+str(lcs_id))
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.PathID = obj['links'][0]['path'][len(obj['links'][0]['path'])-1]['id']
         s.Name = obj['name']
@@ -93,6 +96,7 @@ def createSimulation(name: str, lcs_id: int):
     resp = session.post(benchURL + 'rest/simulation', json=d)
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.sim_id = obj['id']
         s.Error = None
@@ -157,6 +161,7 @@ def startSimulation(sim_id: int, solver_id: int, nodes_count=1, node_cores=1, ad
     resp = session.post(benchURL + 'rest/task', json=d)
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.task_id = obj['id']
         s.Error = None
@@ -181,6 +186,7 @@ def startPostproc(sim_id: int, post_id: int, story_id: int):
     resp = session.post(benchURL + 'rest/task', json=d)
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.task_id = obj['id']
         s.Error = None
@@ -218,6 +224,7 @@ def getSolverName(solver_id: int):
     global session
     t = getSolverList()
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.solver_name = t.solver_list[solver_id-1]
     except IndexError:
@@ -231,6 +238,7 @@ def getStype(stype_id: int):
     resp = session.get(benchURL + 'rest/submodelType/'+str(stype_id))
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.PathID = obj['links'][0]['path'][len(obj['links'])]['id']
         s.Name = obj['name']
@@ -273,6 +281,7 @@ def getSimulationFileID(sim_id: int, file_name: str, bench_file_path: str):
     resp = session.post(benchURL + 'rest/simulation/' + str(sim_id) + '/file/list', json=d)
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         for i in range(len(obj['content'])):
             if obj['content'][i]['name'] == file_name:
@@ -323,6 +332,7 @@ def runRemoteAppSmodel(app_id: str, submodel_id: int):
     resp = session.post(benchURL + 'rest/job', json=d)
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.Full = obj
         s.Message = obj['message']
@@ -341,6 +351,7 @@ def getUser(user_id: int):
     resp = session.get(benchURL + 'rest/user/'+str(user_id))
     obj = json.loads(resp.text)
     s = Object()
+    # возврат в качестве ответа полей json
     try:
         s.Full = obj
         s.Name = obj['name']
